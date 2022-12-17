@@ -6,7 +6,7 @@ const { APIfeatures } = require("../utils/filter");
 exports.getAllUser = async (req, res, next) => {
   try {
     if (req.user && req.user.idAdmin || req.user.role === 2) {
-      const features = new APIfeatures(User.find(), req.query).paginating().sorting().searching();
+      const features = new APIfeatures(User.find({ isActive: true }), req.query).paginating().sorting().searching();
       const users = await features.query;
       const total = await User.countDocuments();
       res.status(200).send({
@@ -48,7 +48,7 @@ exports.updateUser = async (req, res, next) => {
 
 exports.disableUser = async (req, res, next) => {
   try {
-    const user = User.findOne({ _id: req.params.id });
+    const user = await User.findOne({ _id: req.params.id });
     if (!user) res.status(404).send({ message: "User isn't exist!" });
     else {
       user.isActive = !user.isActive;

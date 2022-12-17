@@ -57,7 +57,7 @@ const ProductSchema = new mongoose.Schema(
     },
     isDisabled: {
       type: Boolean,
-      default: true,
+      default: false,
     },
     isFavorite: {
       type: Boolean,

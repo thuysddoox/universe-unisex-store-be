@@ -36,14 +36,14 @@ exports.createCheckout = async (req, res, next) => {
         },
         currency: "usd",
       },
-      discounts: [
-        {
-          coupon: {
-            percent_off: product.discount,
-            currency: "usd",
-          }
-        }
-      ],
+      // discounts: [
+      //   {
+      //     coupon: {
+      //       percent_off: product.discount,
+      //       currency: "usd",
+      //     }
+      //   }
+      // ],
       quantity: product.quantity,
     }))
     const session = await stripe.checkout.sessions.create({
@@ -53,6 +53,7 @@ exports.createCheckout = async (req, res, next) => {
       cancel_url: `${process.env.WEB_BASEURL}/cart/checkout`,
     });
     order.isPaid = session.payment_status !== 'unpaid';
+
     order.checkoutId = session.id;
     console.log(session)
     await order.save();

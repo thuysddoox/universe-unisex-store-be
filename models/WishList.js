@@ -7,7 +7,7 @@ const WishListSchema = new mongoose.Schema({
     ref: "User",
   },
   products: [{
-    type: [mongoose.Schema.ObjectId],
+    type: mongoose.Schema.ObjectId,
     ref: 'Product'
   }]
 }, { timestamps: true })

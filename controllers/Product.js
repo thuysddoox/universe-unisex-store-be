@@ -1,14 +1,17 @@
 const Category = require("../models/Category");
 const Comment = require("../models/Comment");
 const Product = require("../models/Product");
+const WishList = require("../models/WishList");
 const { APIfeatures } = require("../utils/filter");
 
 exports.getProductDetail = async (req, res, next) => {
   try {
     const product = await Product.findById(req.params.id);
-    if (product) res.status(200).send({
-      responseData: product,
-    })
+    if (product) {
+      res.status(200).send({
+        responseData: product,
+      })
+    }
     else res.status(404).send({
       message: "Product doesn't exist!"
     })
@@ -43,7 +46,7 @@ exports.getNewsProduct = async (req, res, next) => {
     next(error)
   }
 }
-exports.getBestSellerProduct = async (_, res, next) => {
+exports.getBestSellerProduct = async (req, res, next) => {
   try {
     const products = await Product.aggregate([{
       "$sort": {
@@ -62,20 +65,7 @@ exports.getBestSellerProduct = async (_, res, next) => {
 }
 exports.getSaleProduct = async (req, res, next) => {
   try {
-    // const products = await Product.aggregate([
-    //   {
-    //     $match: {
-    //       discount: {
-    //         $gt: 0
-    //       }
-    //     }
-    //   }
-    //   , {
-    //     "$sort": {
-    //       "discount": -1
-    //     }
-    //   }, { $limit: 5 }]);
-    const features = new APIfeatures(Product.find(), req.query).paginating().getDiscount().sorting().searching();
+    const features = new APIfeatures(Product.find(), req.query).filtering().searching().sorting().paginating();
     const products = await features.query;
     const total = await Product.countDocuments({ discount: { $gt: 0 } });
     res.status(200).send({
@@ -92,21 +82,42 @@ exports.getSaleProduct = async (req, res, next) => {
 
 exports.getProducts = async (req, res, next) => {
   try {
-    const features = new APIfeatures(Product.find(), req.query).paginating().sorting().searching();
+    const owner = req.user?._id;
+    let wishlist;
+    const categories = req.query?.category ? await Promise.all(req.query?.category?.map(item => Category.findOne({ "name": { $regex: item.split('&').join('/'), $options: 'i' } }))) : []
+    const categoriesId = categories?.map(item => item?._id);
+    if (categoriesId?.length > 0) req.query.category = categoriesId;
+    const features = new APIfeatures(Product.find(), req.query).filtering().searching().sorting().paginating()
+    const features2 = new APIfeatures(Product.find(), req.query).filtering().searching();
+    const productsAll = await features2.query;
     const products = await features.query;
     const total = await Product.countDocuments();
+    if (owner) {
+      wishlist = await WishList.findOne({ owner }).populate(
+        {
+          path: 'products',
+          model: 'Product'
+        }
+      );
+      wishlist?.products?.forEach((product) => {
+        const index = products.findIndex(item => item._id.toString() == product._id.toString());
+        if (index > -1) {
+          products[index].isFavorite = true;
+        }
+      })
+    }
     res.status(200).send({
       responseData: products,
       page: features.queryString.pageIndex || 1,
       page_size: features.queryString.pageSize * 1 || 12,
-      total: total,
+      total: productsAll?.length ?? total,
     })
   } catch (error) {
     res.status(500).send(error.message);
   }
 };
 exports.createProduct = async (req, res, next) => {
-  const newProduct = new Product(req.body);
+  const newProduct = new Product({ ...req.body, isDisabled: false });
   try {
     await newProduct.save();
     res.status(201).send({
@@ -146,7 +157,7 @@ exports.deleteProduct = async (req, res, next) => {
       res.status(404).send({ message: "Product isn't exist!" });
     } else {
       await Comment.deleteMany({ product: req.params.id });
-      res.status(200).send({ message: "Deleted successfully!!!" });
+      res.status(200).send({ responseData: { message: "Deleted successfully!!!" } });
     }
   } catch (e) {
     res.status(500).send(e);
@@ -157,17 +168,19 @@ exports.deleteProduct = async (req, res, next) => {
 exports.disableProduct = async (req, res, next) => {
   try {
     const product = await Product.findOne({ _id: req.params.id });
-    if (!product) req.status(404).send({ message: "Product isn't exist!" });
+    if (!product) res.status(404).send({ message: "Product isn't exist!" });
     else {
       product.isDisabled = !product.isDisabled;
       await product.save();
-      req.status(200).send({
-        message: `Product is ${product.isDisabled ? "disabled" : "enabled"
-          } successfully!`,
+      res.status(200).send({
+        responseData: {
+          message: `Product is ${product.isDisabled ? "disabled" : "enabled"
+            } successfully!`,
+        }
       });
     }
   } catch (error) {
-    res.status(500).send(e);
-    next(e);
+    res.status(500).send(error);
+    next(error);
   }
 };

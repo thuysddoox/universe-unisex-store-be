@@ -4,8 +4,9 @@ const CategorySchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
+    unique: true,
   },
-  thumnail: {
+  thumbnail: {
     type: String,
   },
   stock: {
@@ -13,6 +14,10 @@ const CategorySchema = new mongoose.Schema({
     default: 0,
   },
   sold: {
+    type: Number,
+    default: 0,
+  },
+  total: {
     type: Number,
     default: 0,
   }

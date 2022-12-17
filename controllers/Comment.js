@@ -1,9 +1,17 @@
+const mongoose = require("mongoose");
 const Comment = require("../models/Comment");
+const Order = require("../models/Order");
 const { APIfeatures } = require("../utils/filter");
 
 exports.getAllComments = async (req, res, next) => {
   try {
-    const features = new APIfeatures(Comment.find(), req.query).paginating().sorting().searching();
+    const features = new APIfeatures(Comment.find({ isDisabled: false }).populate({
+      path: 'productId',
+      model: 'Product',
+    }).populate({
+      path: 'owner',
+      model: 'User',
+    }), req.query).paginating().sorting().searching();
     const comments = await features.query;
     const total = await Comment.countDocuments();
     res.status(200).send({
@@ -20,8 +28,35 @@ exports.getAllComments = async (req, res, next) => {
 
 exports.getCommentOfProduct = async (req, res, next) => {
   try {
-    const comments = await Comment.find({ productId: req.params.id });
-    res.status(200).send({ responseData: { comments }, status: 200 });
+    const features = new APIfeatures(Comment.find({ productId: req.params.id, isDisabled: false }), req.query).paginating().sorting();
+    const comments = await features.query;
+    const total = await Comment.countDocuments();
+    res.status(200).send({ responseData: comments, total, status: 200 });
+  } catch (error) {
+    res.status(500).send(error);
+    next(error);
+  }
+};
+
+exports.getRateOfProduct = async (req, res, next) => {
+  try {
+    const data = await Comment.aggregate([
+      {
+        $match: { productId: mongoose.Types.ObjectId(req?.query?.productId) }
+      },
+      {
+        $group: {
+          _id: "$rate",
+          count: { $sum: 1 },
+        }
+      },
+      {
+        $sort: { _id: 1 }
+      }
+    ]);
+    const total = await Comment.countDocuments({ productId: mongoose.Types.ObjectId(req?.query?.productId) })
+    const average = Math.ceil(data.reduce((total, value) => total + value._id * value.count, 0) / total * 10) / 10
+    res.status(200).send({ responseData: data, average, total, status: 200 });
   } catch (error) {
     res.status(500).send(error);
     next(error);
@@ -29,11 +64,16 @@ exports.getCommentOfProduct = async (req, res, next) => {
 };
 
 exports.createComment = async (req, res, next) => {
-  const comment = new Comment({
-    ...req.body,
-  });
+
   try {
-    await comment.save();
+    console.log(req.body.comments)
+    const comment = await Promise.all(req.body.comments?.map(comment => new Comment({
+      ...comment,
+    }).save()));
+    const order = await Order.findById(req.body.orderId);
+    order.status = 5;
+    await order.save();
+    // await comment.save();
     res.status(201).json({
       responseData: { comment: comment },
       status: 201,
@@ -47,15 +87,11 @@ exports.createComment = async (req, res, next) => {
 exports.replyComment = async (req, res, next) => {
   try {
     if (req.user && req.user.isAdmin) {
-      const commentRep = new Comment({
-        ...req.body,
-      });
       const comment = await Comment.findById(req.params.id);
-      comment.replyComments.push(commentRep);
+      comment.replyComments.push({ ...req.body, createdAt: new Date() });
       await comment.save();
-      await commentRep.save();
       res.status(201).json({
-        responseData: { comment: comment },
+        responseData: comment,
         status: 201,
         message: "Created comment successfully!",
       });

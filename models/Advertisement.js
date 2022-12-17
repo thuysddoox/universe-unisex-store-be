@@ -1,40 +1,18 @@
 const mongoose = require("mongoose");
 
 const AdvertisementSchema = new mongoose.Schema({
-  banners: [
-    {
-      thumbnail: {
-        required: false,
-        type: String,
-      },
-      title: {
-        required: false,
-        type: String,
-      },
-      description: {
-        required: false,
-        type: String,
-      }
-    }
-  ],
-  video: {
-    required: false,
+  title1: {
     type: String,
   },
-  sales: {
-    required: false,
-    type: [String],
+  title2: {
+    type: String,
   },
-  display: {
-    type: Number,
-    required: false,
-    default: 1,
+  description: {
+    type: String,
   },
-  displayOnHome: {
-    type: Boolean,
-    default: true,
-    required: false,
-  }
+  imgUrl: {
+    type: String,
+  },
 }, { timestamps: true });
 const Advertisement = mongoose.model('Advertisement', AdvertisementSchema);
 module.exports = Advertisement;

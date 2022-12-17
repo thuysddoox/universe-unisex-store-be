@@ -9,11 +9,12 @@ exports.getCart = async (req, res, next) => {
         path: 'products',
         populate: { path: 'product', model: 'Product' }
       });
-      if (cart && cart.products.length > 0) {
-        cart.products.forEach((product) => {
-          if (product.product.stock < product.product.quantity) product.quantity = product.product.stock;
+      if (cart && cart?.products?.length > 0) {
+        cart.products?.forEach((product) => {
+          if (product?.product?.stock < product?.product?.quantity) product.quantity = product?.product?.stock;
         })
         await cart.save();
+        console.log(cart)
       } res.status(200).send({ responseData: cart || [] });
     } else res.status(400).send({ message: "You don't allow to do that!" });
 

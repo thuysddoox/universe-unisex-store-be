@@ -6,6 +6,7 @@ const Auth = require("../middleware/Auth");
 
 router.get(ENDPOINTS.COMMENT, Auth.verifyTokenAndAuthorization, commentController.getAllComments);
 router.get(ENDPOINTS.COMMENT_PRODUCT, commentController.getCommentOfProduct);
+router.get(ENDPOINTS.COMMENT_RATE, commentController.getRateOfProduct);
 router.post(ENDPOINTS.COMMENT, Auth.verifyToken, commentController.createComment);
 router.patch(ENDPOINTS.COMMENT_DETAIL, Auth.verifyToken, commentController.updateComment);
 router.post(ENDPOINTS.COMMENT_REPLY, Auth.verifyTokenAndAuthorization, commentController.replyComment);

@@ -24,6 +24,9 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: false,
     },
+    gender: {
+      type: String,
+    },
     phone: {
       type: String,
       required: true,
@@ -64,7 +67,7 @@ const UserSchema = new mongoose.Schema(
       type: Number,
       required: true,
       default: 1,
-      // 1: user, 2: admin
+      // 1: user, 2: admin,= 3: staff 
     },
     isActive: {
       type: Boolean,

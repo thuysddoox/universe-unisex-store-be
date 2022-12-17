@@ -17,16 +17,17 @@ exports.createOrder = async (req, res, next) => {
       return res.status(400).send({ message: "Please provide full field!" });
     } else {
       const order = new Order({ ...req.body, userId: req.user._id });
+      order?.timeline?.push({ status: 1, date: new Date() })
       products.forEach(async (product) => {
         const p = await Product.findById(product.productId);
         p.stock -= product.quantity;
         await p.save();
       })
-      const restProduct = cart.products.filter(async (productId) => {
+      const restProduct = cart.products.filter((productId) => {
         !products.includes(product => product.productId === productId)
       })
-      console.log(restProduct)
       cart.products = restProduct;
+      console.log(restProduct, cart)
       await cart.save();
       await order.save();
       return res.status(201).send({ responseData: order, message: "Ordered successfully!!" });
@@ -37,12 +38,36 @@ exports.createOrder = async (req, res, next) => {
 };
 exports.getOrders = async (req, res, next) => {
   try {
-    const orders = await Order.find({ userId: req.user._id });
+    const status = req.query?.status;
+    const features = new APIfeatures(status ? Order.find({ userId: req.user._id, status: status }) : Order.find({ userId: req.user._id }), req.query).paginating().filtering().searching().sorting()
+    const orders = await features.query;
+    const total = await Order.countDocuments({ userId: req.user._id, status: status });
     if (orders) {
-      res.status(200).send({ responseData: { orders }, total: orders.length });
+      res.status(200).send({ responseData: orders, total });
     } else {
-      res.status(404).send({ responseData: { orders: [] }, total: 0, message: "You have never been ordered before!!" });
+      res.status(404).send({ responseData: orders, total, message: "You have never been ordered before!!" });
     }
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+}
+exports.getTotalOrders = async (req, res, next) => {
+  try {
+    const result = await Order.aggregate([
+      {
+        $match: { "userId": { $eq: req.user._id } }
+      },
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { _id: 1 }
+      }
+    ])
+    res.status(200).send({ responseData: result });
   } catch (error) {
     res.status(500).send({ message: error.message });
   }
@@ -61,11 +86,13 @@ exports.getOrderDetail = async (req, res, next) => {
 }
 exports.updateOrder = async (req, res, next) => {
   try {
-    const order = await Order.findById(req.params.orderId);
+    const order = await Order.findById(req.params.id);
     const { status } = req.body;
     if (order) {
       if (req.user.isAdmin || req.user.role === 2 && status) {
         order.status = status;
+        console.log(order?.timeline)
+        if (!order.timeline?.includes(item => item?.status === status)) order?.timeline?.push({ status, date: new Date() })
         await order.save();
         res.status(200).send({ responseData: { order }, message: "Updated successfully!" });
       }
@@ -76,19 +103,39 @@ exports.updateOrder = async (req, res, next) => {
     res.status(500).send({ message: error.message });
   }
 };
-exports.cancelOrder = async (req, res, next) => {
+exports.updateOrderClient = async (req, res, next) => {
   try {
-    const order = await Order.findById(req.params.orderId);
-    if (order && req.user._id === order.userId && !order.isPaid) {
-      order.status = 0;
-      await order.save();
+    const order = await Order.findById(req.params.id);
+    console.log(req.user._id, order.userId)
+    if (order) {
+      if (req.user._id.toString() == order.userId.toString()) {
+        if (!order.isPaid && order?.status === 1) {
+          order.status = 0;
+          const timeline = order?.timeline ?? [];
+          timeline.push({ status: 0, date: new Date() })
+          order.timeline = timeline;
+          console.log(order)
+          await order.save();
+          res.status(200).send({ message: "Order has been cancelled!" });
+        }
+        else if (order.isPaid && order?.status === 3) {
+          order.status = 4;
+          const timeline = order?.timeline ?? [];
+          timeline.push({ status: 4, date: new Date() })
+          order.timeline = timeline;
+          await order.save();
+          res.status(200).send({ message: "Order has been completed!" });
+        }
+      }
+      if (order?.isPaid) res.status(401).send({ message: "You can't cancel order because you paid!" });
     }
-    else if (order.isPaid) res.status(401).send({ message: "You can't cancel order because you paid!" });
     else res.status(404).send({ message: "Order doesn't exist!" });
   } catch (error) {
     res.status(500).send({ message: error.message });
+    next(error)
   }
 }
+
 exports.getAllOrders = async (req, res, next) => {
   try {
     if (req.user.isAdmin) {

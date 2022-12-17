@@ -11,6 +11,8 @@ const CommentRoute = require("./routes/Comment");
 const WishlistRoute = require("./routes/Wishlist");
 const OrderRoute = require("./routes/Order");
 const PaymentRoute = require("./routes/Payment");
+const StatisticRoute = require("./routes/Statistic");
+const AdvertisementRoute = require("./routes/Advertisement");
 
 require("dotenv").config();
 
@@ -37,6 +39,8 @@ app.use(WishlistRoute);
 app.use(CommentRoute);
 app.use(OrderRoute);
 app.use(PaymentRoute);
+app.use(StatisticRoute);
+app.use(AdvertisementRoute);
 app.get("/", (req, res) => {
   res.send("Server is running");
 });

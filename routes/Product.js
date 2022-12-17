@@ -28,7 +28,7 @@ router.patch(
 router.delete(
   ENDPOINTS.PRODUCT_DETAIL,
   Auth.verifyTokenAndAuthorization,
-  productController.disableProduct
+  productController.deleteProduct
 );
 router.patch(
   ENDPOINTS.DISABLE_PRODUCT,

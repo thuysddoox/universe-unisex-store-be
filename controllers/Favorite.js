@@ -3,11 +3,17 @@ const WishList = require("../models/WishList");
 exports.getFavoriteList = async (req, res, next) => {
   try {
     const owner = req.user._id;
-    const wishlist = await WishList.findOne({ owner });
+    const wishlist = await WishList.findOne({ owner }).populate(
+      {
+        path: 'products',
+        model: 'Product'
+      }
+    );
     if (wishlist) {
-      res.status(200).send({ responseData: { wishlist, total: wishlist.length } });
+      const data = wishlist?.products?.map(product => ({ ...product._doc, isFavorite: true }))
+      res.status(200).send({ responseData: data });
     }
-    else res.status(404).send({ responseData: { wishlist: [], total: wishlist.length }, message: "You didn't add any product into wishlist!" });
+    else res.status(200).send({ responseData: [], message: "You didn't add any product into wishlist!" });
   } catch (error) {
     res.status(500).send(error);
     next(error);

@@ -1,6 +1,7 @@
 const express = require("express");
 const ENDPOINTS = require("../constants/endpoints");
 const userController = require("../controllers/User");
+const authController = require("../controllers/Auth");
 const Auth = require("../middleware/Auth");
 const router = express.Router();
 
@@ -28,5 +29,5 @@ router.patch(
 router.post(ENDPOINTS.RESET_PASSWORD, userController.resetPassword);
 router.patch(ENDPOINTS.CHANGE_PASSWORD, Auth.verifyToken, userController.changePassword);
 router.post(ENDPOINTS.CHANGE_PASSWORD, userController.changePassword);
-
+router.post(ENDPOINTS.USER, Auth.verifyTokenAndAuthorization, authController.register);
 module.exports = router;

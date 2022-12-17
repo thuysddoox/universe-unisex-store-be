@@ -1,3 +1,5 @@
+const Category = require("../../models/Category");
+
 // Constructors and object instances
 function APIfeatures(query, queryString, params) {
   this.query = query; // Products.find()
@@ -13,6 +15,7 @@ function APIfeatures(query, queryString, params) {
   this.sorting = () => {
     const sortBy = this.queryString.orderBy || "createdAt";
     const direction = this.queryString.orderDirection || 'desc';
+    console.log(sortBy)
     this.query = this.query
       .sort({ [sortBy]: direction === 'desc' ? -1 : 1 })
     // .populate("categories");
@@ -23,26 +26,34 @@ function APIfeatures(query, queryString, params) {
     const search = this.queryString.keyword;
     if (search) {
       this.query = this.query.find({
-        $or: {
-          name: {
-            $regex: search,
-            $options: 'i'
+        $or: [
+          {
+            name: {
+              $regex: search,
+              $options: 'i'
+            }
           },
-          username: {
-            $regex: search,
-            $options: 'i'
-          },
-          fullname: {
-            $regex: search,
-            $options: 'i'
-          },
-          email: {
-            $regex: search,
-            $options: 'i'
-          },
-        }
-
-      });
+          // {
+          //   username: {
+          //     $regex: search,
+          //     $options: 'i'
+          //   },
+          // },
+          // {
+          //   fullname: {
+          //     $regex: search,
+          //     $options: 'i'
+          //   },
+          // },
+          // {
+          //   email: {
+          //     $regex: search,
+          //     $options: 'i'
+          //   },
+          // }
+        ]
+      }
+      );
     } else {
       this.query = this.query.find();
     }
@@ -51,13 +62,49 @@ function APIfeatures(query, queryString, params) {
 
   this.filtering = () => {
     const queryObj = this.queryString;
-
+    this.query = this.query.find();
+    if (queryObj.category) {
+      this.query = this.query.find({
+        $or: [{ categoryId: { $in: queryObj.category } }],
+      });
+    }
+    if (queryObj.status) {
+      this.query = this.query.find({
+        status: { $eq: queryObj.status }
+      });
+    }
     if (queryObj.color) {
       this.query = this.query.find({
-        $or: [{ color: { $regex: queryObj.color } }],
+        $or: [{ color: { $eq: queryObj.color } }],
       });
-    } else {
-      this.query = this.query.find();
+    }
+    if (queryObj.size) {
+      this.query = this.query.find({
+        size: { $eq: queryObj.size }
+      });
+    }
+    if (queryObj.price) {
+      // 1: < 20
+      // 2: 20< <40
+      // 3: 40 < < 60
+      // 4: 60 < < 100
+      switch (queryObj.price) {
+        case 1: this.query = this.query.find({
+          price: { $lt: 20 },
+        }); break;
+        case 2: this.query = this.query.find({
+          price: { $gt: 20, $lt: 40 },
+        }); break;
+        case 3: this.query = this.query.find({
+          price: { $gt: 40, $lt: 60 },
+        }); break;
+        case 4: this.query = this.query.find({
+          price: { $gt: 60, $lt: 100 },
+        }); break;
+        case 5: this.query = this.query.find({
+          price: { $gt: 100 },
+        }); break;
+      }
     }
 
     return this;

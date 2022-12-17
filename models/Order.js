@@ -35,8 +35,17 @@ const OrderSchema = new mongoose.Schema(
     ],
     fullname: { type: String, required: true },
     address: { type: Object, required: true },
-    status: { type: Number, default: 0 },
-
+    status: { type: Number, default: 1 },
+    timeline: [
+      {
+        status: {
+          type: Number, default: 0
+        },
+        date: {
+          type: Date
+        }
+      }
+    ],
     // 0: cancelled
     // 1: approving
     // 2: preparing

@@ -9,27 +9,19 @@ const CommentSchema = new mongoose.Schema(
     },
     productId: {
       type: mongoose.Schema.ObjectId,
-      required: true,
       ref: "Product",
     },
     content: {
       type: String,
-      required: true,
     },
     rate: {
       type: Number,
+      default: 5,
     },
-    images: {
-      type: [String],
-    },
-    name: {
-      type: String,
-    },
-    replyComments: {
-      type: [mongoose.Schema.ObjectId],
-      required: false,
-      ref: "Comment",
-    },
+    replyComments: [{
+      content: String,
+      owner: String,
+    }],
     isDisabled: {
       type: Boolean,
       default: false,
