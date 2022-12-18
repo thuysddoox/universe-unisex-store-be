@@ -152,7 +152,7 @@ exports.resetPassword = async (req, res, next) => {
             "
           >
             <a
-              href="http://localhost:3001/reset-password?idReset=${userInfo._id}"
+              href="${process.env.WEB_BASEURL}/reset-password?idReset=${userInfo._id}"
               style="color: #fff; text-decoration: none"
               >Reset Password</a
             >
