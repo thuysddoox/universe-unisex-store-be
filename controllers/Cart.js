@@ -14,7 +14,6 @@ exports.getCart = async (req, res, next) => {
           if (product?.product?.stock < product?.product?.quantity) product.quantity = product?.product?.stock;
         })
         await cart.save();
-        console.log(cart)
       } res.status(200).send({ responseData: cart || [] });
     } else res.status(400).send({ message: "You don't allow to do that!" });
 
@@ -26,7 +25,6 @@ exports.getCart = async (req, res, next) => {
 exports.addToCart = async (req, res, next) => {
   const owner = req.user._id;
   const { productId, quantity } = req.body;
-  console.log(quantity)
   try {
     if (owner) {
       const cart = await Cart.findOne({ owner });

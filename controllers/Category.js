@@ -15,7 +15,6 @@ exports.updateCategory = async (req, res, next) => {
     const category = await Category.findOne({ _id: req.params.id });
     if (!category) res.status(404).send({ message: "Category isn't exist!" });
     for (let key in category) if (req.body[key] && key != '_id') category[key] = req.body[key];
-    console.log(req.body)
     await category.save();
     res.status(200).send({
       responseData: category

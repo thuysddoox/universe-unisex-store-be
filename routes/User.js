@@ -26,8 +26,13 @@ router.patch(
   Auth.verifyToken,
   userController.updateUser
 );
+router.get(
+  ENDPOINTS.USER_DETAIL,
+  Auth.verifyToken,
+  userController.getUserInfo
+);
 router.post(ENDPOINTS.RESET_PASSWORD, userController.resetPassword);
-router.patch(ENDPOINTS.CHANGE_PASSWORD, Auth.verifyToken, userController.changePassword);
+router.patch(ENDPOINTS.CHANGE_PASSWORD, Auth.getUserFromToken, userController.changePassword);
 router.post(ENDPOINTS.CHANGE_PASSWORD, userController.changePassword);
 router.post(ENDPOINTS.USER, Auth.verifyTokenAndAuthorization, authController.register);
 module.exports = router;

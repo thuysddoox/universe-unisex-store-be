@@ -73,6 +73,18 @@ exports.createComment = async (req, res, next) => {
     const order = await Order.findById(req.body.orderId);
     order.status = 5;
     await order.save();
+    const data = await Comment.aggregate([
+      {
+        $group: {
+          _id: "$productId",
+          rate: {
+            $sum: "$rate",
+          },
+          review: { $sum: 1 }
+        }
+      },
+    ]);
+    console.log(data)
     // await comment.save();
     res.status(201).json({
       responseData: { comment: comment },

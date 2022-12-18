@@ -1,6 +1,20 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
+const getUserFromToken = async (req, res, next) => {
+  const authHeader = req.header("Authorization");
+  if (authHeader) {
+    const token = authHeader.split(" ")[1];
+    jwt.verify(token, process.env.JWT_SECRET, async (err, user) => {
+      if (err) req.user = {};
+      else {
+        const userCurrent = await User.findById({ _id: user._id });
+        req.user = userCurrent;
+      }
+      next();
+    });
+  } else next();
+};
 const verifyToken = async (req, res, next) => {
   const authHeader = req.header("Authorization");
   if (authHeader) {
@@ -29,4 +43,5 @@ const verifyTokenAndAuthorization = (req, res, next) => {
 module.exports = {
   verifyToken,
   verifyTokenAndAuthorization,
+  getUserFromToken
 };

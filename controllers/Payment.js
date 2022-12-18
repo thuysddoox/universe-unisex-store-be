@@ -1,3 +1,4 @@
+const { default: mongoose } = require("mongoose");
 const Order = require("../models/Order");
 
 const stripe = require("stripe")(process.env.STRIPE_KEY);
@@ -67,8 +68,22 @@ exports.getCheckout = async (req, res, next) => {
   try {
     const sessionId = req.params.id;
     const session = await stripe.checkout.sessions.retrieve(sessionId);
-    console.log(session);
-    res.status(200).send({ responseData: { session } });
+    res.status(200).send({ responseData: session?.id });
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+}
+
+exports.payOrder = async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.id)
+    const session = await stripe.checkout.sessions.retrieve(order.checkoutId);
+    order.isPaid = session.payment_status !== 'unpaid' || session.status === 'complete';
+    order.status = 2;
+    order.timeline.push({ status: 2, date: new Date() })
+    console.log(session, order)
+    await order.save();
+    res.status(200).send({ responseData: { order } });
   } catch (error) {
     res.status(500).send({ message: error.message });
   }

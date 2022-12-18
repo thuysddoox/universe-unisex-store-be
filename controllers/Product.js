@@ -23,6 +23,8 @@ exports.getProductDetail = async (req, res, next) => {
 
 exports.getNewsProduct = async (req, res, next) => {
   try {
+    const owner = req.user?._id;
+    let wishlist;
     const products = await Category.aggregate([
       {
         $lookup: {
@@ -38,6 +40,20 @@ exports.getNewsProduct = async (req, res, next) => {
     ])
     await Product.populate(products, { path: "categoryId", model: 'Category' });
     products.forEach(item => item.products = item.products.splice(0, 4));
+    if (owner) {
+      wishlist = await WishList.findOne({ owner }).populate(
+        {
+          path: 'products',
+          model: 'Product'
+        }
+      );
+      wishlist?.products?.forEach((product) => {
+        const index = products.findIndex(item => item._id.toString() == product._id.toString());
+        if (index > -1) {
+          products[index].isFavorite = true;
+        }
+      })
+    }
     res.status(200).send({
       responseData: products ?? [],
     })
@@ -48,6 +64,8 @@ exports.getNewsProduct = async (req, res, next) => {
 }
 exports.getBestSellerProduct = async (req, res, next) => {
   try {
+    const owner = req.user?._id;
+    let wishlist;
     const products = await Product.aggregate([{
       "$sort": {
         "sold": -1
@@ -57,6 +75,20 @@ exports.getBestSellerProduct = async (req, res, next) => {
         "stock": 1
       }
     }, { $limit: 5 }]);
+    if (owner) {
+      wishlist = await WishList.findOne({ owner }).populate(
+        {
+          path: 'products',
+          model: 'Product'
+        }
+      );
+      wishlist?.products?.forEach((product) => {
+        const index = products.findIndex(item => item._id.toString() == product._id.toString());
+        if (index > -1) {
+          products[index].isFavorite = true;
+        }
+      })
+    }
     res.status(200).send({ responseData: products ?? [], total: products?.length ?? 0 })
   } catch (error) {
     res.status(500).send(error);
@@ -65,9 +97,25 @@ exports.getBestSellerProduct = async (req, res, next) => {
 }
 exports.getSaleProduct = async (req, res, next) => {
   try {
+    const owner = req.user?._id;
+    let wishlist;
     const features = new APIfeatures(Product.find(), req.query).filtering().searching().sorting().paginating();
     const products = await features.query;
     const total = await Product.countDocuments({ discount: { $gt: 0 } });
+    if (owner) {
+      wishlist = await WishList.findOne({ owner }).populate(
+        {
+          path: 'products',
+          model: 'Product'
+        }
+      );
+      wishlist?.products?.forEach((product) => {
+        const index = products.findIndex(item => item._id.toString() == product._id.toString());
+        if (index > -1) {
+          products[index].isFavorite = true;
+        }
+      })
+    }
     res.status(200).send({
       responseData: products ?? [],
       page: features.queryString.pageIndex || 1,
@@ -79,12 +127,13 @@ exports.getSaleProduct = async (req, res, next) => {
     next(error)
   }
 }
-
 exports.getProducts = async (req, res, next) => {
   try {
     const owner = req.user?._id;
     let wishlist;
-    const categories = req.query?.category ? await Promise.all(req.query?.category?.map(item => Category.findOne({ "name": { $regex: item.split('&').join('/'), $options: 'i' } }))) : []
+    const categories = req.query?.category ? await Promise.all(req.query?.category?.map(item => Category.findOne(
+      { name: { $regex: item.split('&').join('/'), $options: 'i' } },
+    ))) : []
     const categoriesId = categories?.map(item => item?._id);
     if (categoriesId?.length > 0) req.query.category = categoriesId;
     const features = new APIfeatures(Product.find(), req.query).filtering().searching().sorting().paginating()
@@ -100,7 +149,7 @@ exports.getProducts = async (req, res, next) => {
         }
       );
       wishlist?.products?.forEach((product) => {
-        const index = products.findIndex(item => item._id.toString() == product._id.toString());
+        const index = products.findIndex(item => item?._id?.toString() == product?._id?.toString());
         if (index > -1) {
           products[index].isFavorite = true;
         }

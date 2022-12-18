@@ -27,7 +27,7 @@ exports.createOrder = async (req, res, next) => {
         !products.includes(product => product.productId === productId)
       })
       cart.products = restProduct;
-      console.log(restProduct, cart)
+
       await cart.save();
       await order.save();
       return res.status(201).send({ responseData: order, message: "Ordered successfully!!" });
@@ -91,7 +91,6 @@ exports.updateOrder = async (req, res, next) => {
     if (order) {
       if (req.user.isAdmin || req.user.role === 2 && status) {
         order.status = status;
-        console.log(order?.timeline)
         if (!order.timeline?.includes(item => item?.status === status)) order?.timeline?.push({ status, date: new Date() })
         await order.save();
         res.status(200).send({ responseData: { order }, message: "Updated successfully!" });
@@ -106,7 +105,7 @@ exports.updateOrder = async (req, res, next) => {
 exports.updateOrderClient = async (req, res, next) => {
   try {
     const order = await Order.findById(req.params.id);
-    console.log(req.user._id, order.userId)
+
     if (order) {
       if (req.user._id.toString() == order.userId.toString()) {
         if (!order.isPaid && order?.status === 1) {
@@ -114,7 +113,7 @@ exports.updateOrderClient = async (req, res, next) => {
           const timeline = order?.timeline ?? [];
           timeline.push({ status: 0, date: new Date() })
           order.timeline = timeline;
-          console.log(order)
+
           await order.save();
           res.status(200).send({ message: "Order has been cancelled!" });
         }

@@ -74,12 +74,20 @@ function APIfeatures(query, queryString, params) {
     }
     if (queryObj.color) {
       this.query = this.query.find({
-        $or: [{ color: { $eq: queryObj.color } }],
+        $or: [{
+          color: {
+            $regex: queryObj.color,
+            $options: 'i'
+          }
+        }],
       });
     }
     if (queryObj.size) {
       this.query = this.query.find({
-        size: { $eq: queryObj.size }
+        size: {
+          $regex: queryObj.size,
+          $options: 'i'
+        }
       });
     }
     if (queryObj.price) {
@@ -87,22 +95,22 @@ function APIfeatures(query, queryString, params) {
       // 2: 20< <40
       // 3: 40 < < 60
       // 4: 60 < < 100
-      switch (queryObj.price) {
+      switch (+queryObj.price) {
         case 1: this.query = this.query.find({
           price: { $lt: 20 },
-        }); break;
+        }); console.log('1'); break;
         case 2: this.query = this.query.find({
           price: { $gt: 20, $lt: 40 },
-        }); break;
+        }); console.log('2'); break;
         case 3: this.query = this.query.find({
           price: { $gt: 40, $lt: 60 },
-        }); break;
+        }); console.log('3'); break;
         case 4: this.query = this.query.find({
           price: { $gt: 60, $lt: 100 },
-        }); break;
+        }); console.log('4'); break;
         case 5: this.query = this.query.find({
           price: { $gt: 100 },
-        }); break;
+        }); console.log('5'); break;
       }
     }
 

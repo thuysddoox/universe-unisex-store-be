@@ -81,6 +81,18 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: false,
     },
+    commune: {
+      type: String,
+      required: false,
+    },
+    city: {
+      type: String,
+      required: false,
+    },
+    district: {
+      type: String,
+      required: false,
+    },
     isAdmin: {
       type: Boolean,
       required: false,

@@ -25,10 +25,26 @@ exports.getAllUser = async (req, res, next) => {
     next(error);
   }
 };
+exports.getUserInfo = async (req, res, next) => {
+  try {
+    if (req.user._id === req.params.id) {
+      const user = await User.findOne({ _id: req.params.id });
+      res.status(200).send({
+        responseData: user,
+      })
+    }
+    else res.status(400).send({
+      message: "You don't allow to do that!"
+    });
 
+  } catch (error) {
+    res.status(500).send(error);
+    next(error);
+  }
+};
 exports.updateUser = async (req, res, next) => {
   try {
-    const user = User.findOne({ _id: req.params.id });
+    const user = await User.findOne({ _id: req.params.id });
     if (!user) res.status(404).send({ message: "User isn't exist!" });
     else {
       for (let key in user)
@@ -136,7 +152,7 @@ exports.resetPassword = async (req, res, next) => {
             "
           >
             <a
-              href="http://localhost:3001/reset-pass?idReset=${userInfo._id}"
+              href="http://localhost:3001/reset-password?idReset=${userInfo._id}"
               style="color: #fff; text-decoration: none"
               >Reset Password</a
             >

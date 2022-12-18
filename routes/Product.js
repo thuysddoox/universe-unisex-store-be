@@ -9,12 +9,12 @@ router.get(
   productController.getProductDetail
 );
 router.get(
-  ENDPOINTS.PRODUCT,
+  ENDPOINTS.PRODUCT, Auth.getUserFromToken,
   productController.getProducts
 );
-router.get(ENDPOINTS.PRODUCT_SALE, productController.getSaleProduct);
-router.get(ENDPOINTS.PRODUCT_BEST, productController.getBestSellerProduct);
-router.get(ENDPOINTS.PRODUCT_NEW, productController.getNewsProduct);
+router.get(ENDPOINTS.PRODUCT_SALE, Auth.getUserFromToken, productController.getSaleProduct);
+router.get(ENDPOINTS.PRODUCT_BEST, Auth.getUserFromToken, productController.getBestSellerProduct);
+router.get(ENDPOINTS.PRODUCT_NEW, Auth.getUserFromToken, productController.getNewsProduct);
 router.post(
   ENDPOINTS.PRODUCT,
   Auth.verifyTokenAndAuthorization,
