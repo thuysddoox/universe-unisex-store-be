@@ -15,7 +15,6 @@ function APIfeatures(query, queryString, params) {
   this.sorting = () => {
     const sortBy = this.queryString.orderBy || "createdAt";
     const direction = this.queryString.orderDirection || 'desc';
-    console.log(sortBy)
     this.query = this.query
       .sort({ [sortBy]: direction === 'desc' ? -1 : 1 })
     // .populate("categories");

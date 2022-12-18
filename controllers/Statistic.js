@@ -18,7 +18,6 @@ exports.doStatistic = async (req, res, next) => {
       // },
       { $group: { _id: null, sum: { $sum: "$rate" } } },
     ])
-    console.log(profit, rate, stars)
     res.status(200).send({
       responseData: {
         users, orders, profit: profit[0]?.sum, review: rate, rate: rate > 0 ? Math.ceil(stars[0]?.sum / 5 * 10) / 10 : 0

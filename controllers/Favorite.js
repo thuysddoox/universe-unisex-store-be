@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const WishList = require("../models/WishList");
 
 exports.getFavoriteList = async (req, res, next) => {
@@ -25,8 +26,8 @@ exports.handleFavorite = async (req, res, next) => {
     const owner = req.user._id;
     const wishlist = await WishList.findOne({ owner });
     if (wishlist) {
-      const productIndex = wishlist.products.findIndex(item => item === productId);
-      if (productIndex > -1) wishlist.products.slice(productIndex, 1);
+      const productIndex = wishlist.products.findIndex(item => item.toString() == mongoose.Types.ObjectId(productId).toString());
+      if (productIndex > -1) wishlist.products.splice(productIndex, 1);
       else wishlist.products.push(productId);
       await wishlist.save();
       res.status(200).send({ responseData: { wishlist, total: wishlist.length }, message: `${productIndex > -1 ? 'Removed product from' : 'Add product into'} wishlist successfully!` });

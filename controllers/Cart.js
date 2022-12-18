@@ -26,6 +26,7 @@ exports.getCart = async (req, res, next) => {
 exports.addToCart = async (req, res, next) => {
   const owner = req.user._id;
   const { productId, quantity } = req.body;
+  console.log(quantity)
   try {
     if (owner) {
       const cart = await Cart.findOne({ owner });
