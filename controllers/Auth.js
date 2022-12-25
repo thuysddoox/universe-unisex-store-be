@@ -13,8 +13,9 @@ exports.register = async (req, res, next) => {
       });
     }
     else {
-      if (req.user.isAdmin || req.user.role === 2)
+      if (req?.user?.isAdmin || req?.user?.role === 2) {
         newUser.role = 3
+      }
       newUser.isAdmin = false;
       await newUser.save();
       res.status(201).json({
