@@ -20,7 +20,7 @@ exports.doStatistic = async (req, res, next) => {
     ])
     res.status(200).send({
       responseData: {
-        users, orders, profit: profit[0]?.sum, review: rate, rate: rate > 0 ? Math.ceil(stars[0]?.sum / 5 * 10) / 10 : 0
+        users, orders, profit: profit[0]?.sum ?? 0, review: rate ?? 0, rate: rate > 0 ? Math.ceil(stars[0]?.sum / rate * 10) / 10 : 0
       }
     })
   } catch (error) {
