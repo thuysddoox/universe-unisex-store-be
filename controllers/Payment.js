@@ -26,16 +26,17 @@ exports.payment = async (req, res, next) => {
 exports.createCheckout = async (req, res, next) => {
   try {
     const products = req.body.order.products;
+    console.log(products)
     const order = await Order.findById(req.body.order._id)
     const line_items = products.map(product => ({
       price_data: {
-        unit_amount: product.price * 100,
+        unit_amount: product.price * (1 - product?.discount / 100),
         product_data: {
           name: product.productName,
           images: product.thumbnails,
           description: `${product.size} - ${product.color}`,
         },
-        currency: "usd",
+        currency: "vnd",
       },
       // discounts: [
       //   {

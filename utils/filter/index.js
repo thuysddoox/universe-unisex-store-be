@@ -97,19 +97,19 @@ function APIfeatures(query, queryString, params) {
       // 4: 60 < < 100
       switch (+queryObj.price) {
         case 1: this.query = this.query.find({
-          price: { $lt: 20 },
+          price: { $lt: 300000 },
         }); console.log('1'); break;
         case 2: this.query = this.query.find({
-          price: { $gt: 20, $lt: 40 },
+          price: { $gt: 300000, $lt: 500000 },
         }); console.log('2'); break;
         case 3: this.query = this.query.find({
-          price: { $gt: 40, $lt: 60 },
+          price: { $gt: 500000, $lt: 1000000 },
         }); console.log('3'); break;
         case 4: this.query = this.query.find({
-          price: { $gt: 60, $lt: 100 },
+          price: { $gt: 1000000, $lt: 2000000 },
         }); console.log('4'); break;
         case 5: this.query = this.query.find({
-          price: { $gt: 100 },
+          price: { $gt: 2000000 },
         }); console.log('5'); break;
       }
     }
