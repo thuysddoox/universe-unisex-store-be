@@ -43,7 +43,8 @@ exports.addToCart = async (req, res, next) => {
           const productIndex = cart.products.findIndex(item => item.product == productId)
           if (productIndex > -1) {
             let productSelected = cart.products[productIndex];
-            quantity === 1 ? productSelected.quantity += quantity : productSelected.quantity = quantity;
+            // quantity === 1 ? productSelected.quantity += quantity : 
+            productSelected.quantity = quantity;
             cart.products[productIndex] = productSelected;
           }
           else {

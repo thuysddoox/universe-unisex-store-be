@@ -49,6 +49,7 @@ const ENDPOINTS = {
 
   STATISTIC: "/api/statistic",
   STATISTIC_MONTH: "/api/statistic/month",
+  STATISTIC_PRODUCT: "/api/statistic/product",
   STATISTIC_USER: "/api/statistic/user/:id",
 };
 module.exports = ENDPOINTS;

@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Comment = require("../models/Comment");
 const Order = require("../models/Order");
 const { APIfeatures } = require("../utils/filter");
+const Product = require("../models/Product");
 
 exports.getAllComments = async (req, res, next) => {
   try {
@@ -84,6 +85,12 @@ exports.createComment = async (req, res, next) => {
         }
       },
     ]);
+    data.forEach(async (item) => {
+      const p = await Product.findById(item?._id);
+      p.rate = Math.floor(item.rate / item.review * 10) / 10;
+      await p.save();
+
+    })
     console.log(data)
     // await comment.save();
     res.status(201).json({

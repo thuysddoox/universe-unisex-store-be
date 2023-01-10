@@ -99,7 +99,7 @@ exports.getSaleProduct = async (req, res, next) => {
   try {
     const owner = req.user?._id;
     let wishlist;
-    const features = new APIfeatures(Product.find(), req.query).filtering().searching().sorting().paginating();
+    const features = new APIfeatures(Product.find(), req.query).filtering().searching().getDiscount().sorting().paginating();
     const products = await features.query;
     const total = await Product.countDocuments({ discount: { $gt: 0 } });
     if (owner) {

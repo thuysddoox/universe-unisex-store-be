@@ -1,4 +1,5 @@
 const Cart = require("../models/Cart");
+const Category = require("../models/Category");
 const Order = require("../models/Order");
 const Product = require("../models/Product");
 const { APIfeatures } = require("../utils/filter");
@@ -11,23 +12,32 @@ const getTotal = (products) => {
 };
 exports.createOrder = async (req, res, next) => {
   const { fullname, address, phone, email, products } = req.body;
+  console.log(req.body)
   try {
     const cart = await Cart.findOne({ owner: req.user._id });
     if (!fullname || !address || !phone || !email) {
       return res.status(400).send({ message: "Please provide full field!" });
     } else {
+
       const order = new Order({ ...req.body, userId: req.user._id });
+      order.status = 1;
       order?.timeline?.push({ status: 1, date: new Date() })
-      products.forEach(async (product) => {
+      products.forEach(async (product, index) => {
         const p = await Product.findById(product.productId);
+        const c = await Category.findById(product.categoryId);
         p.stock -= product.quantity;
+        p.sold += product.quantity;
+        c.sold += product.quantity;
+        // c.stock -= product.quantity;
+        c.total += Math.floor(product.quantity * product.price * (100 - product.discount) / 100 * 10) / 10
         await p.save();
+        await c.save();
+        console.log(index, p, c)
       })
       const restProduct = cart.products.filter((productId) => {
         !products.includes(product => product.productId === productId)
       })
       cart.products = restProduct;
-
       await cart.save();
       await order.save();
       return res.status(201).send({ responseData: order, message: "Ordered successfully!!" });
@@ -91,6 +101,7 @@ exports.updateOrder = async (req, res, next) => {
     if (order) {
       if (req.user.isAdmin || req.user.role === 2 && status) {
         order.status = status;
+        if (status === 4) order.isPaid = true;
         if (!order.timeline?.includes(item => item?.status === status)) order?.timeline?.push({ status, date: new Date() })
         await order.save();
         res.status(200).send({ responseData: { order }, message: "Updated successfully!" });
@@ -113,7 +124,15 @@ exports.updateOrderClient = async (req, res, next) => {
           const timeline = order?.timeline ?? [];
           timeline.push({ status: 0, date: new Date() })
           order.timeline = timeline;
-
+          order.products.forEach(async (item) => {
+            const product = await Product.findById(item.productId);
+            const c = await Category.findById(product.categoryId);
+            c.sold -= item.quantity;
+            c.total -= Math.floor(item.quantity * item.price * (100 - item.discount) / 100 * 10) / 10
+            product.stock = product.stock + item.quantity;
+            product.sold = product.sold - item.quantity;
+            await product.save();
+          })
           await order.save();
           res.status(200).send({ message: "Order has been cancelled!" });
         }
@@ -162,8 +181,11 @@ exports.payOrder = async (req, res, next) => {
     const session = await stripe.checkout.sessions.retrieve(checkoutId);
     if (order) {
       if (req.user) {
-        if (session.payment_status === 'paid') order.isPaid = true;
-        await order.save();
+        if (session.payment_status === 'paid') {
+          order.isPaid = true;
+          order.timeline.push({ status: 2, date: new Date() });
+          await order.save();
+        }
         res.status(200).send({ responseData: { paid: true }, message: "Order is paid successfully!" });
       }
       else res.status(401).send({ message: "You can't do that!" });

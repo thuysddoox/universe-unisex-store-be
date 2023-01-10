@@ -129,7 +129,6 @@ UserSchema.methods.toJSON = function () {
 
 UserSchema.statics.findByCredentials = async (username, password, res) => {
   const user = await User.findOne({ username }) || await User.findOne({ email: username });
-
   if (!user) {
     throw new Error("Username or password is not correct!!!");
   }

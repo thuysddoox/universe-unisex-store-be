@@ -45,13 +45,10 @@ const ProductSchema = new mongoose.Schema(
     },
     sold: {
       type: Number,
-      require: true,
-    },
-    discount: {
-      type: Number,
+      require: false,
       default: 0,
     },
-    rate: {
+    discount: {
       type: Number,
       default: 0,
     },

@@ -10,7 +10,7 @@ const OrderSchema = new mongoose.Schema(
     cartId: {
       type: mongoose.Schema.ObjectId,
       ref: "Cart",
-      required: true,
+      // required: true,
     },
     products: [
       {
@@ -18,6 +18,10 @@ const OrderSchema = new mongoose.Schema(
           type: mongoose.Schema.ObjectId,
           required: true,
           ref: "Product",
+        },
+        categoryId: {
+          type: mongoose.Schema.ObjectId,
+          ref: "Category",
         },
         productName: { type: String, required: true },
         price: { type: Number, required: true },
@@ -35,6 +39,18 @@ const OrderSchema = new mongoose.Schema(
     ],
     fullname: { type: String, required: true },
     address: { type: Object, required: true },
+    commune: {
+      type: String,
+      required: false,
+    },
+    city: {
+      type: String,
+      required: false,
+    },
+    district: {
+      type: String,
+      required: false,
+    },
     status: { type: Number, default: 1 },
     timeline: [
       {
