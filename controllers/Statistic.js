@@ -9,7 +9,11 @@ exports.doStatistic = async (req, res, next) => {
     const [users = 0, orders = 0, rate = 0] = await Promise.all([User.countDocuments(), Order.countDocuments(), Comment.countDocuments()]);
     const profit = await Order.aggregate([
       {
-        $match: { "createdAt": { $lt: query?.to ? new Date(query?.to) : new Date(new Date().getTime() + 24 * 60 * 60 * 1000), $gt: query?.from ? new Date(query?.from) : new Date(new Date().getTime() - 6 * 30 * 24 * 60 * 60 * 1000) } }
+        $match: {
+          $and: [{ "createdAt": { $lt: query?.to ? new Date(query?.to) : new Date(new Date().getTime() + 24 * 60 * 60 * 1000), $gt: query?.from ? new Date(query?.from) : new Date(new Date().getTime() - 6 * 30 * 24 * 60 * 60 * 1000) } },
+          { "isPaid": { $eq: true } }
+          ]
+        }
       },
       { $group: { _id: null, sum: { $sum: { $sum: ["$total", "$shipCost"] } } } },
     ])
@@ -38,7 +42,11 @@ exports.statisticByMonth = async (req, res, next) => {
       //   $match: { "isPaid": { $eq: true } }
       // },
       {
-        $match: { "createdAt": { $lt: query?.to ? new Date(query?.to) : new Date(new Date().getTime() + 24 * 60 * 60 * 1000), $gt: query?.from ? new Date(query?.from) : new Date(new Date().getTime() - 6 * 30 * 24 * 60 * 60 * 1000) } }
+        $match: {
+          $and: [{ "createdAt": { $lt: query?.to ? new Date(query?.to) : new Date(new Date().getTime() + 24 * 60 * 60 * 1000), $gt: query?.from ? new Date(query?.from) : new Date(new Date().getTime() - 6 * 30 * 24 * 60 * 60 * 1000) } },
+          { "isPaid": { $eq: true } }
+          ]
+        }
       },
       // Second Stage
       {

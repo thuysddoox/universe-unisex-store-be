@@ -124,7 +124,7 @@ exports.deleteFromCart = async (req, res, next) => {
         if (productIndex > -1) {
           let productSelected = cart.products[productIndex];
           cart.total -= productSelected.price * productSelected.quantity;
-          cart.products.splice(productIndex, 1)(productIndex, 1);
+          cart.products?.splice(productIndex, 1);
         }
       })
     await cart.save();
