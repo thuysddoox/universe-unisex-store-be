@@ -29,7 +29,10 @@ exports.getAllComments = async (req, res, next) => {
 
 exports.getCommentOfProduct = async (req, res, next) => {
   try {
-    const features = new APIfeatures(Comment.find({ productId: req.params.id, isDisabled: false }), req.query).paginating().sorting();
+    const features = new APIfeatures(Comment.find({ productId: req.params.id, isDisabled: false }).populate({
+      path: 'owner',
+      model: 'User',
+    }), req.query).paginating().sorting();
     const comments = await features.query;
     const total = await Comment.countDocuments();
     res.status(200).send({ responseData: comments, total, status: 200 });
